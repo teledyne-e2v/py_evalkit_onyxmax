@@ -6,11 +6,11 @@ Created on Aug 2024
 """
 from sensor import *
 from utils import *
-
+from time import sleep
 from PIL import Image
 
 # USER PARAMETERS
-from sensor import Topaz
+from sensor import OnyxMax
 
 NIMAGES = 1  # Number of images to be acquired
 INTERVAL_PLOT = 0.0001  # Refresh rate in ms
@@ -26,28 +26,21 @@ if __name__ == "__main__":
     print("*******************************************************************")
 
     # Open connection
-    camera = Topaz()
+    camera = OnyxMax()
 
     if camera is not None:
 
-        # Global subsampling management
-        SUBSAMPLING = 0  # 0=Full 1x1 image, 1=Subsampling both axis
-        print("Subsampling = ", str(SUBSAMPLING))
-
         # print("\r\t" + str(NBImageAcquired) + "/" + str(NIMAGES) + " images acquired", end="\t\t\t")
-
-        # Vertical subsampling: activation in sensor
-        if SUBSAMPLING == 0:
-            camera.enable_vertical_subsampling(enable=0)  # Vertical subsampling disable
-        else:
-            camera.enable_vertical_subsampling(enable=1)  # Vertical subsampling enable
+        #camera.load_config("RS-8b")
+        #camera.load_config("RS-10b")
+        camera.load_config("RS-12b")
+        sleep(0.5)
 
         # Exposure time
         camera.exposure_time = EXPOSURE_TIME
+
         # Pixel format and acquisition image size
         if camera.pixel_format == "RGB24":
-            # camera.white_balance(red=R_GAIN, green=G_GAIN, blue=B_GAIN)
-            camera.enable_white_balance(enable=1)
             shape = (NIMAGES, camera.sensor_height, camera.sensor_width * 3)
         else:
             shape = (NIMAGES, camera.sensor_height, camera.sensor_width)
@@ -57,26 +50,10 @@ if __name__ == "__main__":
         # Get current setting
         print_info(camera)
 
-        # Start acquisition for white balance
-        camera.start_acquisition()
-        # Do white balance
-        if camera.pixel_format == "RGB24":
-            camera.do_white_balance(enable=1)
-            camera.do_white_balance(enable=0)
-        from time import sleep
-        sleep(0.05)
-        # Terminate acquisition
-        camera.stop_acquisition()
-
         # Image acquisition
         print("\nImage acquisition:")
         if camera.start_acquisition() == 0:
             NBImageAcquired = 0
-
-            # Do white balance
-            if camera.pixel_format == "RGB24":
-                camera.do_white_balance(enable=1)
-                camera.do_white_balance(enable=0)
 
             for i in range(0, NIMAGES):
                 # Get image from internal buffer
@@ -93,23 +70,15 @@ if __name__ == "__main__":
                 for i in range(0, NIMAGES):
                     NBImageAcquired += 1
 
-                    if SUBSAMPLING == 0:
-                        # Horizontal subsampling: activation during image processing
-                        image = image_rearange(im[i, :, :], camera.pixel_format)  # Horizontal subsampling disable
-                        # img = Image.fromarray(image, 'RGB')
-                        img = Image.fromarray(image, )    
-                        img.save('FullResImage.png')
-                    else:
-                        # Horizontal subsampling: activation during image processing
-                        image = image_rearange_subsampling22(im[i, :, :], camera.pixel_format)  # Horizontal subsampling enable
-                        # img = Image.fromarray(image, 'RGB')
-                        img = Image.fromarray(image,) 
-                        img.save('SubsampledImage.png')
-
                     """
                     Insert your processing code here
                     image is the current image acquired
                     """
+
+                    image = image_rearange(im[i, :, :], camera.pixel_format)
+                    # img = Image.fromarray(image, 'RGB')
+                    img = Image.fromarray(image, )
+                    img.save('EK-image.png')
 
                     # update_figure(fig, image, INTERVAL_PLOT, NBImageAcquired)
                     print("\r\t" + str(NBImageAcquired) + "/" + str(NIMAGES) + " images processed", end="\t\t\t")

@@ -210,8 +210,13 @@ class EvaluationKit:
                 shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth * bytesPerPixel)
                 image = make_nd_array(data, shape, dtype=np.uint8, order="C")
             else:
-                shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth)
-                image = make_nd_array(data, shape, dtype=np.uint16, order="C")
+                if bytesPerPixel == 1: # 8bit
+                    shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth)
+                    image = make_nd_array(data, shape, dtype=np.uint8, order="C")
+                else:
+                    shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth)
+                    image = make_nd_array(data, shape, dtype=np.uint16, order="C")
+
             err = self.lib.PiGentlSdkRequeueBuffer(self._handle, ImageInfos.hBuffer)
             if err != CAM_ERR_SUCCESS:
                 raise Exception(f"PiGentlSdkRequeueBuffer: {err}")

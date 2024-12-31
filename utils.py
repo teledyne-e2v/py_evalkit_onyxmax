@@ -15,6 +15,7 @@ xml_pixel_format_cmap = {
     "RGB24": "hsv",  # RGB24
     "YUV444": "hsv",  # YUV444
     "Mono10p": "gray",  # Mono10p
+    "Mono12p": "gray",  # Mono10p
 }
 
 # used to convert from the EK/XML pixel format to numpy
@@ -28,6 +29,7 @@ xml_pixel_format_nptypes = {
     "RGB24": np.uint8,  # RGB24
     "YUV444": np.uint16,  # YUV444
     "Mono10p": np.uint16,  # Mono10p
+    "Mono12p": np.uint16,  # Mono10p
 }
 
 
