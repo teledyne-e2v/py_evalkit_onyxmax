@@ -166,6 +166,8 @@ class EvaluationKit:
             ba = bytearray(struct.pack("<i", data))
         elif type(data) == float:  # float
             ba = bytearray(struct.pack("<f", data))
+        elif type(data) == np.uint16:  # unsigned short (16bit)
+            ba = bytearray(struct.pack("<H", data))
         else:  # unsigned integer
             ba = bytearray(struct.pack("<I", data))
         ulAddress = ctypes.c_ulong(address)

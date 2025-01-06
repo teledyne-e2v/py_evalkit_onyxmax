@@ -12,12 +12,21 @@ from PIL import Image
 # USER PARAMETERS
 from sensor import OnyxMax
 
-NIMAGES = 1  # Number of images to be acquired
+NIMAGES = 2  # Number of images to be acquired
 INTERVAL_PLOT = 0.0001  # Refresh rate in ms
-EXPOSURE_TIME = 25  # Integration time in ms
-R_GAIN = 1.8  # Red color gain
-G_GAIN = 1  # Green color gain
-B_GAIN = 1.6  # Blue color gain
+EXPOSURE_TIME = 20  # Integration time in ms
+
+config_rgat = [
+    [0x30005,0x1F62],
+    [0x30058,0x06E4],
+    [0x30064,0x3069],
+    [0x30065,0x0011],
+    [0x30066,0x007A],
+    [0x30067,0x0022],
+    [0x30068,0x0030],
+    [0x30070,0x0B0A],
+]
+
 
 #  SIMPLE OBJECT CREATION AND IMAGE ACQUISITION
 if __name__ == "__main__":
@@ -30,11 +39,22 @@ if __name__ == "__main__":
 
     if camera is not None:
 
+        addr=0x3007F
+        rval=int.from_bytes(camera.read(address=addr, size=2, decode=False)[1], byteorder="little", )
+        print("RD 0x{:05x} = 0x{:04x}".format(addr, rval))
+
         # print("\r\t" + str(NBImageAcquired) + "/" + str(NIMAGES) + " images acquired", end="\t\t\t")
         #camera.load_config("RS-8b")
         #camera.load_config("RS-10b")
         camera.load_config("RS-12b")
         sleep(0.5)
+
+        # for i in config_rgat:
+        #     addr = i[0]
+        #     val = np.uint16(i[1])
+        #     print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
+        #     error=camera.write(address=addr,data=val)
+        #     sleep(0.5)
 
         # Exposure time
         camera.exposure_time = EXPOSURE_TIME

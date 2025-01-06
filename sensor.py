@@ -1,12 +1,11 @@
 from evaluationkit import *
-import pandas as pd
-from io import StringIO
+
 
 DEFAULT_PIGENTL_DIR = "C:/Program Files/Teledyne e2v/pigentl/1.4"
 DEFAULT_CTI_NAME = "bin/pigentl.cti"
 DEFAULT_DLL_NAME = "bin/pigentl-sdk.dll"
 
-# used to map sensor features address from XML file
+# used to map EK features address from XML file
 _xml_bootstrap_nodes_addresses = {
     "DeviceVendorName": 0x0,
     "DeviceModelName": 0x20,
@@ -18,6 +17,10 @@ _xml_bootstrap_nodes_addresses = {
     "PixelFormat": 0x10014,
     "LoadConfig": 0x10024,
     "AutoExposure": 0x10300,
+}
+
+# used to map Sensor features address from XML file
+_xml_sensor_nodes_addresses = {
     "ExposureTime": 0x3000C,
     "WaitTime": 0x3000B,
     "LineLength": 0x3003C,
@@ -150,14 +153,14 @@ class OnyxMax(EvaluationKit):
     @property
     def line_length(self):  # in
         return int.from_bytes(
-            self.read(address=_xml_bootstrap_nodes_addresses["LineLength"], size=2, decode=False)[1], byteorder="little"
+            self.read(address=_xml_sensor_nodes_addresses["LineLength"], size=2, decode=False)[1], byteorder="little"
         )
 
     @property
     def wait_time(self):  # in ms
         return (
             int.from_bytes(
-                self.read(address=_xml_bootstrap_nodes_addresses["WaitTime"], size=2, decode=False)[1],
+                self.read(address=_xml_sensor_nodes_addresses["WaitTime"], size=2, decode=False)[1],
                 byteorder="little",
             )
             * (self.line_length / self.clkref)
@@ -167,7 +170,7 @@ class OnyxMax(EvaluationKit):
     def exposure_time(self):  # in ms
         return (
             int.from_bytes(
-                self.read(address=_xml_bootstrap_nodes_addresses["ExposureTime"], size=2, decode=False)[1],
+                self.read(address=_xml_sensor_nodes_addresses["ExposureTime"], size=2, decode=False)[1],
                 byteorder="little",
             )
             * (self.line_length / self.clkref)
@@ -176,14 +179,14 @@ class OnyxMax(EvaluationKit):
     @exposure_time.setter
     def exposure_time(self, value):  # in ms
         return self.write(
-            address=_xml_bootstrap_nodes_addresses["ExposureTime"],
+            address=_xml_sensor_nodes_addresses["ExposureTime"],
             data=np.uint16((value * self.clkref / self.line_length) * 1e3),
         )
 
     def load_config(self, value):  # in ms
         return self.write(
             address=_xml_bootstrap_nodes_addresses["LoadConfig"],
-            data=np.uint16(xml_load_config_type[value]),
+            data=xml_load_config_type[value],
         )
 
     def close(self):
