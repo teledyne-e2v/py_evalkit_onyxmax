@@ -12,19 +12,20 @@ from PIL import Image
 # USER PARAMETERS
 from sensor import OnyxMax
 
-NIMAGES = 2  # Number of images to be acquired
+NIMAGES = 1  # Number of images to be acquired
 INTERVAL_PLOT = 0.0001  # Refresh rate in ms
 EXPOSURE_TIME = 20  # Integration time in ms
 
-config_rgat = [
-    [0x30005,0x1F62],
-    [0x30058,0x06E4],
-    [0x30064,0x3069],
-    [0x30065,0x0011],
-    [0x30066,0x007A],
-    [0x30067,0x0022],
-    [0x30068,0x0030],
-    [0x30070,0x0B0A],
+# Specific init config for range gating
+init_config = [
+    [0x05,0x1F62],
+    [0x58,0x06E4],
+    [0x64,0x3069],
+    [0x65,0x0011],
+    [0x66,0x007A],
+    [0x67,0x0022],
+    [0x68,0x0030],
+    [0x70,0x0B0A],
 ]
 
 
@@ -39,21 +40,23 @@ if __name__ == "__main__":
 
     if camera is not None:
 
-        addr=0x3007F
-        rval=int.from_bytes(camera.read(address=addr, size=2, decode=False)[1], byteorder="little", )
-        print("RD 0x{:05x} = 0x{:04x}".format(addr, rval))
+        addr=0x7F
+        rval=camera.read_sensor_reg(addr) #Read chipID
+        print("RD 0x{:02x} = 0x{:04x}".format(addr, rval))
 
         # print("\r\t" + str(NBImageAcquired) + "/" + str(NIMAGES) + " images acquired", end="\t\t\t")
         #camera.load_config("RS-8b")
         #camera.load_config("RS-10b")
-        camera.load_config("RS-12b")
+        #camera.load_config("RS-12b")
+        camera.load_config("GS-10b")
         sleep(0.5)
 
-        # for i in config_rgat:
-        #     addr = i[0]
-        #     val = np.uint16(i[1])
-        #     print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
-        #     error=camera.write(address=addr,data=val)
+        # Load specific init config
+        # for i in init_config:
+        #     addr=i[0]
+        #     val=i[1]
+        #     error = camera.write_sensor_reg(address=addr, value=val)
+        #     print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
         #     sleep(0.5)
 
         # Exposure time
@@ -96,11 +99,14 @@ if __name__ == "__main__":
                     """
 
                     image = image_rearange(im[i, :, :], camera.pixel_format)
+                    imageProfile(image)
+                    update_figure(fig, image, INTERVAL_PLOT, NBImageAcquired)
+
+                    # Convert to PIL object
                     # img = Image.fromarray(image, 'RGB')
                     img = Image.fromarray(image, )
-                    img.save('EK-image.png')
-
-                    # update_figure(fig, image, INTERVAL_PLOT, NBImageAcquired)
+                    imgName = "EK-image_" + str(NBImageAcquired) + ".png"
+                    img.save(imgName)
                     print("\r\t" + str(NBImageAcquired) + "/" + str(NIMAGES) + " images processed", end="\t\t\t")
 
                     # This method will show image in any image viewer

@@ -21,6 +21,8 @@ _xml_bootstrap_nodes_addresses = {
 
 # used to map Sensor features address from XML file
 _xml_sensor_nodes_addresses = {
+    "BaseAddress": 0x30000,
+    "ChipID": 0x3007F,
     "ExposureTime": 0x3000C,
     "WaitTime": 0x3000B,
     "LineLength": 0x3003C,
@@ -188,6 +190,19 @@ class OnyxMax(EvaluationKit):
             address=_xml_bootstrap_nodes_addresses["LoadConfig"],
             data=xml_load_config_type[value],
         )
+
+    def read_sensor_reg(self, address):
+        addr=address+_xml_sensor_nodes_addresses["BaseAddress"]
+        rval=int.from_bytes(self.read(address=addr, size=2, decode=False)[1], byteorder="little", )
+        # print("RD 0x{:05x} = 0x{:04x}".format(addr, rval))
+        return rval
+
+    def write_sensor_reg(self, address, value):
+        addr=address+_xml_sensor_nodes_addresses["BaseAddress"]
+        val = np.uint16(value)
+        # print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
+        error = self.write(address=addr, data=val)
+        return error
 
     def close(self):
         super().__del__()

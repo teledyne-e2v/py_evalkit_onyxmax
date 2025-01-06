@@ -208,17 +208,16 @@ class EvaluationKit:
             data = ctypes.cast(ImageInfos.pDatas, ctypes.POINTER(ctypes.c_ubyte))
             bytesPerPixel = int((ImageInfos.iImageSize / (ImageInfos.iImageHeight * ImageInfos.iImageWidth)))
             # Get image from byte buffer
-            if bytesPerPixel == 3:  # Packed format
+            if bytesPerPixel == 3:  # RGB 8bit/Color
                 shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth * bytesPerPixel)
                 image = make_nd_array(data, shape, dtype=np.uint8, order="C")
             else:
                 if bytesPerPixel == 1: # 8bit
                     shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth)
                     image = make_nd_array(data, shape, dtype=np.uint8, order="C")
-                else:
+                else: # 16bit
                     shape = (ImageInfos.iImageHeight, ImageInfos.iImageWidth)
                     image = make_nd_array(data, shape, dtype=np.uint16, order="C")
-
             err = self.lib.PiGentlSdkRequeueBuffer(self._handle, ImageInfos.hBuffer)
             if err != CAM_ERR_SUCCESS:
                 raise Exception(f"PiGentlSdkRequeueBuffer: {err}")
