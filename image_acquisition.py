@@ -18,6 +18,7 @@ EXPOSURE_TIME = 20  # Integration time in ms
 
 # Specific init config for range gating
 init_config = [
+    [0x04,0x21C2],
     [0x05,0x1F62],
     [0x58,0x06E4],
     [0x64,0x3069],
@@ -52,12 +53,12 @@ if __name__ == "__main__":
         sleep(0.5)
 
         # Load specific init config
-        # for i in init_config:
-        #     addr=i[0]
-        #     val=i[1]
-        #     error = camera.write_sensor_reg(address=addr, value=val)
-        #     print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
-        #     sleep(0.5)
+        for i in init_config:
+            addr=i[0]
+            val=i[1]
+            error = camera.write_sensor_reg(address=addr, value=val)
+            print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
+            sleep(0.1)
 
         # Exposure time
         camera.exposure_time = EXPOSURE_TIME
@@ -105,7 +106,7 @@ if __name__ == "__main__":
                     # Convert to PIL object
                     # img = Image.fromarray(image, 'RGB')
                     img = Image.fromarray(image, )
-                    imgName = "EK-image_" + str(NBImageAcquired) + ".png"
+                    imgName = "EK-image_" + str(NBImageAcquired) + ".tiff"
                     img.save(imgName)
                     print("\r\t" + str(NBImageAcquired) + "/" + str(NIMAGES) + " images processed", end="\t\t\t")
 
