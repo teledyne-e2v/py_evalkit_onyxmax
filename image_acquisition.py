@@ -60,6 +60,9 @@ if __name__ == "__main__":
             print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
             sleep(0.1)
 
+        # Set VBS to 0V
+        camera.write_vbs_dac(0)
+
         # Exposure time
         camera.exposure_time = EXPOSURE_TIME
 

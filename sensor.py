@@ -17,6 +17,7 @@ _xml_bootstrap_nodes_addresses = {
     "PixelFormat": 0x10014,
     "LoadConfig": 0x10024,
     "AutoExposure": 0x10300,
+    "VbsDac": 0x1060001,
 }
 
 # used to map Sensor features address from XML file
@@ -199,6 +200,13 @@ class OnyxMax(EvaluationKit):
 
     def write_sensor_reg(self, address, value):
         addr=address+_xml_sensor_nodes_addresses["BaseAddress"]
+        val = np.uint16(value)
+        # print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
+        error = self.write(address=addr, data=val)
+        return error
+
+    def write_vbs_dac(self, value):
+        addr=_xml_bootstrap_nodes_addresses["VbsDac"]
         val = np.uint16(value)
         # print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
         error = self.write(address=addr, data=val)
