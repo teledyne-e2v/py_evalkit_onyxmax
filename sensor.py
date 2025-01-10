@@ -28,7 +28,7 @@ _xml_sensor_nodes_addresses = {
     "WaitTime": 0x3000B,
     "LineLength": 0x3003C,
     "AnalogGain": 0x30015,
-    "ClampOffset": 0x3002A,
+    "ImageOffset": 0x3002A,
 }
 
 # used to get the number of bits per pixel from the EK/XML pixel format
@@ -95,6 +95,7 @@ def print_info(ek):
     print("\tLine length                 %.2f us" % (ek.line_length * 20e-3))
     print("\tExposure time               %.2f ms" % ek.exposure_time)
     print("\tWait time                   %.2f ms" % ek.wait_time)
+    print("\tImage Offset               ", ek.image_offset)
 
 class OnyxMax(EvaluationKit):
     def __init__(self, dll_path=None, cti_path=None):
@@ -184,6 +185,22 @@ class OnyxMax(EvaluationKit):
         return self.write(
             address=_xml_sensor_nodes_addresses["ExposureTime"],
             data=np.uint16((value * self.clkref / self.line_length) * 1e3),
+        )
+
+    @property
+    def image_offset(self):
+        return (
+            int.from_bytes(
+                self.read(address=_xml_sensor_nodes_addresses["ImageOffset"], size=2, decode=False)[1],
+                byteorder="little",
+            )
+        )
+
+    @image_offset.setter
+    def image_offset(self, value):
+        return self.write(
+            address=_xml_sensor_nodes_addresses["ImageOffset"],
+            data=np.uint16(value),
         )
 
     def load_config(self, value):  # in ms
