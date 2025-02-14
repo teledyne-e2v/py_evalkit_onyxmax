@@ -53,17 +53,22 @@ if __name__ == "__main__":
         camera.load_config("GS-10b")
         sleep(0.5)
 
-        # Load specific init config
-        for i in init_config:
-            addr=i[0]
-            val=i[1]
-            error = camera.write_sensor_reg(address=addr, value=val)
-            print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
-            sleep(0.1)
+        # Load specific init config: Range Gating
+        #camera.load_sensor_config(init_config)
 
-        camera.write_vbs_dac(0)  # Set VBS to 0V
-        camera.exposure_time = EXPOSURE_TIME    #Set exposure time
-        camera.image_offset = IMAGE_OFFSET  # Set image offset
+        camera.write_vbs_dac(0)  # Set VBS to value*(-30.25)/2^16
+        camera.exposure_time = EXPOSURE_TIME # Set exposure time
+        camera.image_offset = IMAGE_OFFSET   # Set image offset
+
+        # camera.clamp_mode(0) # Offset CLAMP OFF
+        # camera.clamp_mode(3) # Offset CLAMP ON
+
+        # Thermometer initialization
+        camera.enable_thermo()
+
+        # Temperature measurement
+        temp = camera.read_thermo()
+        print("temp= " + str(temp) + "°C")
 
         # Pixel format and acquisition image size
         if camera.pixel_format == "RGB24":

@@ -1,5 +1,5 @@
 from evaluationkit import *
-
+from time import sleep
 
 DEFAULT_PIGENTL_DIR = "C:/Program Files/Teledyne e2v/pigentl/1.4"
 DEFAULT_CTI_NAME = "bin/pigentl.cti"
@@ -228,6 +228,74 @@ class OnyxMax(EvaluationKit):
         # print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
         error = self.write(address=addr, data=val)
         return error
+
+    def clamp_mode(self, value):
+        addr = 0x0004
+        mask = 0xFF3F
+        rd = self.read_sensor_reg(addr)
+        wr = rd & mask
+        shifted = value << 6
+        wr = wr + shifted
+        error = self.write_sensor_reg(address=addr, value=wr)
+        return error
+
+    def load_sensor_config(self, config):
+        for i in config:
+            addr=i[0]
+            val=i[1]
+            error = self.write_sensor_reg(address=addr, value=val)
+            print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
+            sleep(0.1)
+        return error
+
+    def enable_thermo(self):
+        # @0x03 - reg_dig_power - clk_thermo_en[5]=1
+        addr = 0x0003
+        value = 0x0020
+        mask = 0xFFDF
+        rd = self.read_sensor_reg(addr)
+        wr = (rd & mask) + value
+        error = self.write_sensor_reg(address=addr, value=wr)
+
+        #  @0x05 - reg_dig_config_2 - thermo_en[13]=1
+        addr = 0x0005
+        value = 0x2000
+        mask = 0xDFFF
+        rd = self.read_sensor_reg(addr)
+        wr = (rd & mask) + value
+        error = self.write_sensor_reg(address=addr, value=wr)
+
+        # @0x43 - reg_thermo_ctrl - thermo_selection[2:1] = 2 (counter start control)
+        addr = 0x0043
+        value = 0x0005
+        mask = 0xFFF8
+        rd = self.read_sensor_reg(addr)
+        wr = (rd & mask) + value
+        error = self.write_sensor_reg(address=addr, value=wr)
+
+        # @0x45
+        addr = 0x0045
+        value = 0x03C3
+        error = self.write_sensor_reg(address=addr, value=value)
+
+        # @0x46
+        addr = 0x0046
+        value = 0x0453
+        error = self.write_sensor_reg(address=addr, value=value)
+
+        # @0x4B
+        addr = 0x004B
+        value = 0x0453
+        error = self.write_sensor_reg(address=addr, value=value)
+
+        return error
+
+    def read_thermo(self):
+        addr = 0x0052
+        mask = 0x03FF
+        rd = self.read_sensor_reg(addr)
+        value = round(float(((rd & mask) * (125/1024)) - 40),2)
+        return value
 
     def close(self):
         super().__del__()
