@@ -63,6 +63,10 @@ if __name__ == "__main__":
         # camera.clamp_mode(0) # Offset CLAMP OFF
         # camera.clamp_mode(3) # Offset CLAMP ON
 
+        # Trigger Mode
+        # camera.trigger_source('EXT')  # GEN: EK generator (default) | EXT: external signal (hirose connector)
+        # camera.trigger_mode('ITC')  # INT: internal self-trigger (default) | FRAME: ext Frame Trigger | ITC: ext ITC
+
         # Thermometer initialization
         camera.enable_thermo()
 

@@ -18,6 +18,7 @@ _xml_bootstrap_nodes_addresses = {
     "LoadConfig": 0x10024,
     "AutoExposure": 0x10300,
     "VbsDac": 0x1060001,
+    "TriggerSource": 0x00011000,
 }
 
 # used to map Sensor features address from XML file
@@ -81,6 +82,30 @@ onyx_analog_gain = {
     "x4": 0x0140,
     "x6": 0x0180,
     "x8": 0x01C0,
+    0x0000: "x0.5",
+    0x0040: "x1",
+    0x0080: "x1.5",
+    0x00C0: "x2",
+    0x0100: "x3",
+    0x0140: "x4",
+    0x0180: "x6",
+    0x01C0: "x8",
+}
+
+xml_trigger_input = {
+    "GEN": 0,
+    "EXT": 3,
+    0: "GEN",
+    3: "EXT",
+}
+
+xml_trigger_mode = {
+    "INT": 0,
+    "FRAME": 1,
+    "ITC": 3,
+    0: "INT",
+    1: "FRAME",
+    3: "ITC",
 }
 
 def print_info(ek):
@@ -210,20 +235,20 @@ class OnyxMax(EvaluationKit):
         )
 
     def read_sensor_reg(self, address):
-        addr=address+_xml_sensor_nodes_addresses["BaseAddress"]
-        rval=int.from_bytes(self.read(address=addr, size=2, decode=False)[1], byteorder="little", )
+        addr = address+_xml_sensor_nodes_addresses["BaseAddress"]
+        rval = int.from_bytes(self.read(address=addr, size=2, decode=False)[1], byteorder="little", )
         # print("RD 0x{:05x} = 0x{:04x}".format(addr, rval))
         return rval
 
     def write_sensor_reg(self, address, value):
-        addr=address+_xml_sensor_nodes_addresses["BaseAddress"]
+        addr = address+_xml_sensor_nodes_addresses["BaseAddress"]
         val = np.uint16(value)
         # print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
         error = self.write(address=addr, data=val)
         return error
 
     def write_vbs_dac(self, value):
-        addr=_xml_bootstrap_nodes_addresses["VbsDac"]
+        addr = _xml_bootstrap_nodes_addresses["VbsDac"]
         val = np.uint16(value)
         # print("WR 0x{:05x} = 0x{:04x}".format(addr, val))
         error = self.write(address=addr, data=val)
@@ -241,10 +266,10 @@ class OnyxMax(EvaluationKit):
 
     def load_sensor_config(self, config):
         for i in config:
-            addr=i[0]
-            val=i[1]
+            addr = i[0]
+            val = i[1]
             error = self.write_sensor_reg(address=addr, value=val)
-            print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
+            # print("WR 0x{:02x} = 0x{:04x}".format(addr, val))
             sleep(0.1)
         return error
 
@@ -296,6 +321,26 @@ class OnyxMax(EvaluationKit):
         rd = self.read_sensor_reg(addr)
         value = round(float(((rd & mask) * (125/1024)) - 40),2)
         return value
+
+    def trigger_mode(self, mode):
+        addr = 0x0002
+        mask = 0xFF3F
+        rd = self.read_sensor_reg(addr)
+        wr = rd & mask
+        shifted = xml_trigger_mode[mode] << 6
+        value = wr + shifted
+        error = self.write_sensor_reg(
+                address=addr,
+                value=value,
+        )
+        return error
+
+    def trigger_source(self, source):
+        error = self.write(
+                address=_xml_bootstrap_nodes_addresses["TriggerSource"],
+                data=xml_trigger_input[source],
+        )
+        return error
 
     def close(self):
         super().__del__()
